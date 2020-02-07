@@ -1,35 +1,46 @@
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 
-export default function TextInput({promptText}){
-    
+const TextBox = () => (
+  <div> 
+        <Formik
+          initialValues={{Answer: ''}} 
 
-    const useStyles = makeStyles(theme => ({
-        root: {
-          '& .MuiTextField-root': {
-            margin: theme.spacing(1),
-            width: 200,
-          },
-        },
-      }));
+          validate={values => {
+            const errors = {}; 
+            if(usedAnswer.has(values)){
+              errors.Answer = "Already entered!";
+            }
+            else if(answer.has(values)){
+              errors.Answer = "Invalid word!";
+            }
+            return(errors);
+            }
+          }
 
-      const classes = useStyles(); 
+          onSubmit={(values, { setSubmitting }) => {
+            setTimeout(() => {
+              alert(JSON.stringify(values, null, 2));
+              setSubmitting(false);
+            }, 400);
+          }}
+        >
+        {({ isSubmitting }) => (
+          <Form>
+            <Field type="email" name="email" />
+            <ErrorMessage name="email" component="div" />
+            <Field type="password" name="password" />
+            <ErrorMessage name="password" component="div" />
+            <button type="submit" disabled={isSubmitting}>
+              Submit
+            </button>
+          </Form>
+        )}
+        </Formik>
+      </div>
+  );
 
-    function getUserInput() {
-        const promptResponse = prompt({promptText});
-        console.log(promptResponse);
-        //setText(promptResponse);
-        
-    }
-
-    return(
-        <form className={classes.root} noValidate autoComplete="off">
-            <div>
-                <TextField onClick={() => getUserInput()}  />
-                
-            </div>
-        </form>
-    );
-}
+export default TextBox; 

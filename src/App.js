@@ -1,13 +1,13 @@
 import React, { useState} from 'react';
 import './App.css';
-import TextInput from './TextInput.js'
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import RandomGrid from './Grid.js';
 import jsonDictionary  from './full-wordlist.json';
 import solutions from './boggle_solver.js';
-import {Formik, Form, Field, ErrorMessage} from 'formik'
+//import TextBox from './TextInput.js'; 
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -23,7 +23,47 @@ const useStyles = makeStyles(theme => ({
 
 let gridItems = RandomGrid();
 let dict = Array.from(jsonDictionary.words);
+let usedAnswer = new Set(); 
 const answer = solutions(gridItems, dict);
+const TextBox = () => (
+  <div> 
+        <Formik
+          initialValues={{Answer: ''}} 
+
+          validate={values => {
+            const errors = {}; 
+            if(usedAnswer.has(values)){
+              errors.Answer = "Already entered!";
+            }
+            else if(answer.has(values)){
+              errors.Answer = "Invalid word!";
+            }
+            return(errors);
+            }
+          }
+
+          onSubmit={(values, { setSubmitting }) => {
+            setTimeout(() => {
+              alert(JSON.stringify(values, null, 2));
+              setSubmitting(false);
+            }, 400);
+          }}
+        >
+        {({ isSubmitting }) => (
+          <Form>
+            <Field type="email" name="email" />
+            <ErrorMessage name="email" component="div" />
+            <Field type="password" name="password" />
+            <ErrorMessage name="password" component="div" />
+            <button type="submit" disabled={isSubmitting}>
+              Submit
+            </button>
+          </Form>
+        )}
+        </Formik>
+      </div>
+  );
+
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
@@ -108,7 +148,8 @@ export default function App() {
       </Button> {/* End of secondary button */}
       </div>
 
-      <text />
+      {TextBox}
+      
       </header>
     </div>
   );
