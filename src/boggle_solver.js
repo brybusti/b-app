@@ -107,8 +107,6 @@ function gridSearch(i, j, visited, arr, str, myTrie, sol){
 
 // Find and return the solutions to the given grid & dictionary
 export default function solutions(arr, dict) {
-    console.log(arr);
-    console.log(dict);
     // Needed variables 
     var sol = new Set();                        // Stores found dictionary words 
     var myTrie = new Trie();                    // Create trie to hold dictionary words 
@@ -129,7 +127,7 @@ export default function solutions(arr, dict) {
             
     // Create array to be returned from solution set
     //let sortSol = Array.from(sol);
-
+    
     // Return solution set
     return(sol);
 } // End of solutions function

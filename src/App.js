@@ -8,7 +8,13 @@ import jsonDictionary  from './full-wordlist.json';
 import solutions from './boggle_solver.js';
 import { useFormik } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
-import VirtualizedList from './solutionList.js'
+//import VirtualizedList from './solutionList.js'
+import PropTypes from 'prop-types';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import { FixedSizeList } from 'react-window';
+
+let gridItems, dict, usedAnswer, answers, itr, itr2, eState = 0, qState = -1;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -21,18 +27,15 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const useStyles2 = makeStyles(theme => ({
+  root: {
+    width: '100%',
+    height: 400,
+    maxWidth: 300,
+    backgroundColor: theme.palette.text.secondary,
+  },
+}));
 
-
-
-
-
-
-
-let gridItems = RandomGrid();
-let dict = Array.from(jsonDictionary.words);
-let usedAnswer = new Set(); 
-let answer = solutions(gridItems, dict);
-let eState = 0, qState = 0; 
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
@@ -46,10 +49,11 @@ export default function App() {
           
         if(usedAnswer.has(values.Answer))
           eState = 1;
-        else if((!answer.has(values.Answer)) || (values.Answer.length <= 2))
+        else if((!answers.has(values.Answer)) || (values.Answer.length <= 2))
           eState = 2;
         else{
           usedAnswer.add(values.Answer);
+          answers.delete(values.Answer);
           eState = 0; 
         }
 
@@ -61,20 +65,90 @@ export default function App() {
   });
 
   function handleQuit() {
-    console.log("hi");
-    setVis2(!visible2);
-    qState = 1;
+    if(isVisible){
+      setIsVisible(!isVisible)
+      setVis2(!visible2);
+      qState = 1;
+    }  
   }
 
   function handleStart(){
-    gridItems = RandomGrid();
-    dict = Array.from(jsonDictionary.words);
-    usedAnswer = new Set(); 
-    answer = solutions(gridItems, dict);
-    setIsVisible(!isVisible)
     qState = 0; 
+
+    if(!isVisible){
+      gridItems = RandomGrid();
+      dict = Array.from(jsonDictionary.words);
+      usedAnswer = new Set(); 
+      answers = solutions(gridItems, dict);
+      setIsVisible(!isVisible)
+    }    
   }
   
+
+
+
+
+  function renderRow(props) {
+    const { index, style } = props;
+    itr = Array.from(answers); 
+    itr2 = Array.from(usedAnswer);
+
+
+    if(qState === 0){
+      return (
+        <ListItem button style={style} key={index}>
+          <ListItemText color="red" primary={
+            itr2[index]
+          } />
+        </ListItem>
+      );
+    }
+    else{
+      return (
+        <ListItem button style={style} key={index}>
+          <ListItemText color="red" primary={
+            itr[index]
+          } />
+        </ListItem>
+      );
+    }
+    
+  }
+  
+  renderRow.propTypes = {
+    index: PropTypes.number.isRequired,
+    style: PropTypes.object.isRequired,
+  };
+  
+  function VirtualizedList() {
+    const classes2 = useStyles2();
+    
+    if(qState === 0){
+      return (
+
+        <div className={classes2.root}>
+          <FixedSizeList height={400} width={300} itemSize={46} itemCount={usedAnswer.size}>
+            {renderRow}
+          </FixedSizeList>
+        </div>
+      );
+    }
+    else if(qState === 1){
+      return (
+
+      <div className={classes2.root}>
+        <FixedSizeList height={400} width={300} itemSize={46} itemCount={answers.size}>
+          {renderRow}
+        </FixedSizeList>
+      </div>
+    );
+    }
+  }
+
+
+
+
+
   function NestedGrid() {
     var x = -1;  
     
@@ -125,6 +199,11 @@ export default function App() {
   return (
     <div className="App">
       <header className="App-header">
+
+      <div>
+        <p>BOGGLE</p>
+      </div>
+
       <div>
       {isVisible ?
         (<div> 
@@ -134,6 +213,8 @@ export default function App() {
         </div>) : (<div></div>)
       }   
       </div>
+
+      <p></p>
 
       <div>
       <Button variant="contained" color="primary" onClick={() =>  {
@@ -147,13 +228,6 @@ export default function App() {
         Quit
       </Button> {/* End of secondary button */}
       </div>
-
-
-
-
-
-
-
 
       { qState !== 1 ? (
         <form onSubmit={formik.handleSubmit} id='wordInput'>
@@ -178,8 +252,18 @@ export default function App() {
           <p>Invalid Word!</p>
       ) : (<></>)}  
 
+      { qState === 0 ? (
+          <div>
+            <p>Found Words:</p>
+            <VirtualizedList></VirtualizedList>
+          </div>   
+      ) : (<></>)}
+
       { qState === 1 ? (
+        <div>
+          <p>Missed Words:</p>
           <VirtualizedList></VirtualizedList>
+        </div>
       ) : (<></>)}
 
       </header>

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { FixedSizeList } from 'react-window';
+import './App.js'
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -31,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   
   export default function VirtualizedList() {
     const classes = useStyles();
-  
+    
     return (
       <div className={classes.root}>
         <FixedSizeList height={400} width={300} itemSize={46} itemCount={200}>
