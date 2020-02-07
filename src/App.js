@@ -6,9 +6,9 @@ import Grid from '@material-ui/core/Grid';
 import RandomGrid from './Grid.js';
 import jsonDictionary  from './full-wordlist.json';
 import solutions from './boggle_solver.js';
-//import TextBox from './TextInput.js'; 
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useFormik } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
+import VirtualizedList from './solutionList.js'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -21,58 +21,58 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+
+
+
+
+
+
+
 let gridItems = RandomGrid();
 let dict = Array.from(jsonDictionary.words);
 let usedAnswer = new Set(); 
-const answer = solutions(gridItems, dict);
-const TextBox = () => (
-  <div> 
-        <Formik
-          initialValues={{Answer: ''}} 
-
-          validate={values => {
-            const errors = {}; 
-            if(usedAnswer.has(values)){
-              errors.Answer = "Already entered!";
-            }
-            else if(answer.has(values)){
-              errors.Answer = "Invalid word!";
-            }
-            return(errors);
-            }
-          }
-
-          onSubmit={(values, { setSubmitting }) => {
-            setTimeout(() => {
-              alert(JSON.stringify(values, null, 2));
-              setSubmitting(false);
-            }, 400);
-          }}
-        >
-        {({ isSubmitting }) => (
-          <Form>
-            <Field type="email" name="email" />
-            <ErrorMessage name="email" component="div" />
-            <Field type="password" name="password" />
-            <ErrorMessage name="password" component="div" />
-            <button type="submit" disabled={isSubmitting}>
-              Submit
-            </button>
-          </Form>
-        )}
-        </Formik>
-      </div>
-  );
-
+let answer = solutions(gridItems, dict);
+let eState = 0, qState = 0; 
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
   const [visible2, setVis2] = useState(false); 
   const classes = useStyles();
 
-  function refreshPage() {
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: { Answer: "" },
+    onSubmit: (values, actions) => {
+          
+        if(usedAnswer.has(values.Answer))
+          eState = 1;
+        else if((!answer.has(values.Answer)) || (values.Answer.length <= 2))
+          eState = 2;
+        else{
+          usedAnswer.add(values.Answer);
+          eState = 0; 
+        }
+
+        // Set back to blank
+        formik.values.Answer = "";
+        actions.setSubmitting(false);
+        actions.resetForm();
+    }
+  });
+
+  function handleQuit() {
     console.log("hi");
-    setIsVisible(!isVisible);
+    setVis2(!visible2);
+    qState = 1;
+  }
+
+  function handleStart(){
+    gridItems = RandomGrid();
+    dict = Array.from(jsonDictionary.words);
+    usedAnswer = new Set(); 
+    answer = solutions(gridItems, dict);
+    setIsVisible(!isVisible)
+    qState = 0; 
   }
   
   function NestedGrid() {
@@ -137,19 +137,51 @@ export default function App() {
 
       <div>
       <Button variant="contained" color="primary" onClick={() =>  {
-        setIsVisible(!isVisible)
+        handleStart()
       }}> 
         New Game
       </Button>
     
       {/* Secondary button*/}
-      <Button variant="contained" color="secondary" onClick={() => {refreshPage()}}>
+      <Button variant="contained" color="secondary" onClick={() => {handleQuit()}}>
         Quit
       </Button> {/* End of secondary button */}
       </div>
 
-      {TextBox}
-      
+
+
+
+
+
+
+
+      { qState !== 1 ? (
+        <form onSubmit={formik.handleSubmit} id='wordInput'>
+        <label htmlFor="Answer"></label>
+        <input
+            autoComplete="off"
+            id="Answer"
+            name="Answer"
+            type="Answer"
+            onChange={formik.handleChange}
+            value={formik.values.Answer}
+        />
+        <button type="submit">Submit</button>
+        </form>
+      ) : (<p>Game Ended</p>)}
+
+      { eState === 1 ? (
+        <p>Already Entered!</p>
+      ) : (<></>)}
+
+      { eState === 2 ? (
+          <p>Invalid Word!</p>
+      ) : (<></>)}  
+
+      { qState === 1 ? (
+          <VirtualizedList></VirtualizedList>
+      ) : (<></>)}
+
       </header>
     </div>
   );
