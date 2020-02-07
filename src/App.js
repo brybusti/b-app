@@ -8,7 +8,6 @@ import jsonDictionary  from './full-wordlist.json';
 import solutions from './boggle_solver.js';
 import { useFormik } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
-//import VirtualizedList from './solutionList.js'
 import PropTypes from 'prop-types';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -266,6 +265,7 @@ export default function App() {
         </div>
       ) : (<></>)}
 
+      <p></p>
       </header>
     </div>
   );
