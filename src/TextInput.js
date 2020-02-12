@@ -1,46 +1,33 @@
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
-import { makeStyles } from '@material-ui/core/styles';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import React, { useState } from 'react';
+import firebase from 'firebase';
+ 
+function TextInput({promptText, user, field}) {
+ 
+  const [text, setText] = useState("");
 
-
-const TextBox = () => (
-  <div> 
-        <Formik
-          initialValues={{Answer: ''}} 
-
-          validate={values => {
-            const errors = {}; 
-            if(usedAnswer.has(values)){
-              errors.Answer = "Already entered!";
-            }
-            else if(answer.has(values)){
-              errors.Answer = "Invalid word!";
-            }
-            return(errors);
-            }
-          }
-
-          onSubmit={(values, { setSubmitting }) => {
-            setTimeout(() => {
-              alert(JSON.stringify(values, null, 2));
-              setSubmitting(false);
-            }, 400);
-          }}
-        >
-        {({ isSubmitting }) => (
-          <Form>
-            <Field type="email" name="email" />
-            <ErrorMessage name="email" component="div" />
-            <Field type="password" name="password" />
-            <ErrorMessage name="password" component="div" />
-            <button type="submit" disabled={isSubmitting}>
-              Submit
-            </button>
-          </Form>
-        )}
-        </Formik>
-      </div>
+  function getUserInput() {
+    const promptResponse = prompt(promptText);
+    console.log(promptResponse);
+    setText(promptResponse);
+    // https://firebase.google.com/docs/firestore/manage-data/add-data
+    if (user && user.uid) {
+      firebase.firestore().collection("users").doc(user.uid)
+      .set({[field]: promptResponse}, { merge: true })
+      .then(() => {
+        console.log("Document written!");
+      }).catch((error) => {
+        console.error("Error adding document: ", error);
+      });
+    }
+  }
+ 
+  return (
+    <p>
+    <button onClick={() => getUserInput()}>
+      {promptText}
+    </button>
+    {text}
+    </p>
   );
-
-export default TextBox; 
+}
+export default TextInput;

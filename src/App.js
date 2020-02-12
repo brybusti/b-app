@@ -11,7 +11,15 @@ import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import LoginButton from './LoginButton.js';
 import { FixedSizeList } from 'react-window';
+import TextInput from './TextInput.js';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 let gridItems, dict, usedAnswer, answers, itr, itr2, eState = 0, qState = -1;
 
@@ -22,7 +30,9 @@ const useStyles = makeStyles(theme => ({
   paper: {
     padding: theme.spacing(1),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
+    color: 'white',
+    backgroundColor: 'black',
+    //theme.palette.text.secondary,
   },
 }));
 
@@ -37,11 +47,12 @@ const useStyles2 = makeStyles(theme => ({
 
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [visible2, setVis2] = useState(false); 
   const classes = useStyles();
 
-  const formik = useFormik({
+  const formik = useFormik({ 
     enableReinitialize: true,
     initialValues: { Answer: "" },
     onSubmit: (values, actions) => {
@@ -203,14 +214,22 @@ export default function App() {
         <p>BOGGLE</p>
       </div>
 
+      
+
+      {user != null ? 
+        (<div>
+      
+          {user != null &&
+            <p>Welcome, {user.displayName} ({user.email})</p> 
+          } 
       <div>
-      {isVisible ?
-        (<div> 
-            <Grid  container direction="row" justify="center" alignItems="center">
-              {<NestedGrid/>}   
-            </Grid>
-        </div>) : (<div></div>)
-      }   
+        {isVisible ?
+          (<div> 
+              <Grid  container direction="row" justify="center" alignItems="center">
+                {<NestedGrid/>}   
+              </Grid>
+          </div>) : (<div></div>)
+        }   
       </div>
 
       <p></p>
@@ -227,8 +246,14 @@ export default function App() {
         Quit
       </Button> {/* End of secondary button */}
       </div>
+      
+      {/*div>
+          <TextInput promptText="Enter Word" field="word" user={user} />
+        </div>*/}
 
-      { qState !== 1 ? (
+
+      { (qState !== 1) ? ( 
+        <div>
         <form onSubmit={formik.handleSubmit} id='wordInput'>
         <label htmlFor="Answer"></label>
         <input
@@ -241,6 +266,7 @@ export default function App() {
         />
         <button type="submit">Submit</button>
         </form>
+        </div>
       ) : (<p>Game Ended</p>)}
 
       { eState === 1 ? (
@@ -266,6 +292,11 @@ export default function App() {
       ) : (<></>)}
 
       <p></p>
+        </div>) : (
+          <div>
+            <LoginButton setUser={(user) => setUser(user)} />
+          </div>
+        )}
       </header>
     </div>
   );
