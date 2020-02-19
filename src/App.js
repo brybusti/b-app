@@ -13,7 +13,9 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoginButton from './LoginButton.js';
 import { FixedSizeList } from 'react-window';
-import TextInput from './TextInput.js';
+import {db} from './firebase';
+
+
 import {
   BrowserRouter as Router,
   Switch,
@@ -21,8 +23,11 @@ import {
   Link
 } from "react-router-dom";
 
-let gridItems, dict, usedAnswer, answers, itr, itr2, eState = 0, qState = -1;
+// Needed global variables
+let gridItems, gItems, dict, usedAnswer, answers, itr, itr2, cnt = 0, eState = 0, gMode = -1, qState = -1, score = 0, cState = -1;
+let g2 = new Array(4).fill('c').map(row => Array(4).fill('c'));
 
+// UseStyles to be used
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
@@ -50,6 +55,10 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [visible2, setVis2] = useState(false); 
+  const [visible3, setV3] = useState(true);
+  const [v4, sV4] = useState(true);
+  const [c, setC] = useState(false);
+  const [gShow, setG] = useState(false);
   const classes = useStyles();
 
   const formik = useFormik({ 
@@ -62,6 +71,18 @@ export default function App() {
         else if((!answers.has(values.Answer)) || (values.Answer.length <= 2))
           eState = 2;
         else{
+
+          if(values.Answer.length <= 4)
+            score++;
+          else if(values.Answer.length === 5)
+            score += 2;
+          else if(values.Answer.length === 6)
+            score += 3;
+          else if(values.Answer.length === 7)
+            score += 5;
+          else
+            score += 11;
+
           usedAnswer.add(values.Answer);
           answers.delete(values.Answer);
           eState = 0; 
@@ -72,30 +93,162 @@ export default function App() {
         actions.setSubmitting(false);
         actions.resetForm();
     }
-  });
+  }); // End of Formik
+
+
+
+  // function readFromDB(){
+  //   var grid = db.collection('challenges').doc('C-1').get().then(function(snapshot){
+  //     console.log(snapshot.data().grid);
+  //   })
+  // }
+
 
   function handleQuit() {
     if(isVisible){
       setIsVisible(!isVisible)
       setVis2(!visible2);
+      sV4(!v4);
       qState = 1;
     }  
-  }
+  } // End of handleQuit (quit button)
+
+
+  function handleCQuit(){
+      setG(!gShow);
+      setVis2(!visible2);
+      sV4(!v4);
+      qState = 1;
+  } // End of handleCQuit (challenge quit button)
 
   function handleStart(){
     qState = 0; 
+    sV4(!v4);
 
     if(!isVisible){
       gridItems = RandomGrid();
       dict = Array.from(jsonDictionary.words);
       usedAnswer = new Set(); 
       answers = solutions(gridItems, dict);
-      setIsVisible(!isVisible)
+      setIsVisible(!isVisible);
+      console.log(gridItems);
     }    
-  }
+  } // End of handleStart (start button)
   
 
+  function handleCPage(){
+    setV3(!visible3);
+    gMode = 1;
+  } // End of handleCPage (challenge page)
 
+  function handleRG(){
+    setV3(!visible3);
+    gMode = 0;
+  } // End of handleRG (random/regular game)
+
+  
+  function handleC1(){
+    db.collection('challenges').doc('C-1').get().then(function(instance){
+      gItems = Array.from(instance.data().grid);
+    });
+
+    if(cnt === 0){
+      cnt++;
+      return;
+    }
+    else{
+      
+      gridItems = convertArray(gItems);
+      console.log(gridItems);
+      qState = 0; 
+      sV4(!v4);
+      setG(!gShow);
+      setC(!c);
+      dict = Array.from(jsonDictionary.words);
+      usedAnswer = new Set(); 
+      answers = solutions(gridItems, dict);
+      cState = 0;
+    } 
+  } // End of handleC1
+
+  function handleC2(){
+    db.collection('challenges').doc('C-2').get().then(function(instance){
+      gItems = Array.from(instance.data().grid);
+    });
+    
+    if(cnt === 0){
+      cnt++;
+      return;
+    }
+    else{
+      gridItems = convertArray(gItems);
+      console.log(gridItems);
+      qState = 0; 
+      sV4(!v4);
+      setG(!gShow);
+      setC(!c);
+      dict = Array.from(jsonDictionary.words);
+      usedAnswer = new Set(); 
+      answers = solutions(gridItems, dict);
+      cState = 0;
+    } 
+  } // End of handleC2
+
+  function handleC3(){
+    db.collection('challenges').doc('C-3').get().then(function(instance){
+      gItems = Array.from(instance.data().grid);
+    });
+    
+    if(cnt === 0){
+      cnt++;
+      return;
+    }
+    else{
+      gridItems = convertArray(gItems);
+      console.log(gridItems);
+      qState = 0; 
+      sV4(!v4);
+      setG(!gShow);
+      setC(!c);
+      dict = Array.from(jsonDictionary.words);
+      usedAnswer = new Set(); 
+      answers = solutions(gridItems, dict);
+      cState = 0;
+    } 
+  } // End of handleC3
+
+
+  function convertArray(arr){
+    var m = 0; 
+
+      for(var u = 0; u < 4; u++)
+          for(var b = 0; b < 4; b++)
+            g2[u][b] = arr[m++];
+        
+    return(g2);
+  } // End of convertArray
+
+
+  function handleReturn(){
+    eState = 0;
+    gMode = -1;
+    qState = -1; 
+    score = 0;
+    cState = -1;
+    cnt = 0;
+
+    if(c)
+      setC(!c);
+
+    if(isVisible)
+      setIsVisible(!isVisible);
+
+    if(visible2)
+      setVis2(!visible2);
+
+    if(!visible3)
+    setV3(!visible3);
+  } // End of handleReturn
 
 
   function renderRow(props) {
@@ -123,7 +276,7 @@ export default function App() {
       );
     }
     
-  }
+  } // End of renderRow
   
   renderRow.propTypes = {
     index: PropTypes.number.isRequired,
@@ -153,15 +306,13 @@ export default function App() {
       </div>
     );
     }
-  }
-
-
-
+  } // End of VirtualizedList
 
 
   function NestedGrid() {
     var x = -1;  
-    
+    console.log(gridItems);
+
     function FormRow() {
       x++;
       return (
@@ -217,7 +368,24 @@ export default function App() {
       
 
       {user != null ? 
-        (<div>
+        (visible3 ? (
+          <div>
+            <Button variant="contained" color="primary" onClick={() =>  {
+              handleRG()
+            }}> 
+              Random Grid
+            </Button>
+          
+            {/* Secondary button*/}
+            <Button variant="contained" color="secondary" onClick={() => {handleCPage()}}>
+              Challenges
+            </Button> {/* End of secondary button */}
+          </div>
+        ) : (gMode === 0 ? 
+            (
+
+
+              <div>
       
           {user != null &&
             <p>Welcome, {user.displayName} ({user.email})</p> 
@@ -225,9 +393,13 @@ export default function App() {
       <div>
         {isVisible ?
           (<div> 
+              {"Score: " + score}
+              <p></p>
+              <div>
               <Grid  container direction="row" justify="center" alignItems="center">
                 {<NestedGrid/>}   
               </Grid>
+              </div>
           </div>) : (<div></div>)
         }   
       </div>
@@ -246,13 +418,22 @@ export default function App() {
         Quit
       </Button> {/* End of secondary button */}
       </div>
+
+      {v4 ? (
+        <div>
+          <p></p>
+          <Button variant="contained" onClick={() => {handleReturn()}}>
+            Main Page
+          </Button> {/* End of secondary button */}
+        </div>
+      ): <></> }
       
       {/*div>
           <TextInput promptText="Enter Word" field="word" user={user} />
         </div>*/}
 
 
-      { (qState !== 1) ? ( 
+      { (qState !== 1) && (qState !== -1) ? ( 
         <div>
         <form onSubmit={formik.handleSubmit} id='wordInput'>
         <label htmlFor="Answer"></label>
@@ -267,7 +448,15 @@ export default function App() {
         <button type="submit">Submit</button>
         </form>
         </div>
-      ) : (<p>Game Ended</p>)}
+      ) : (<div></div>)}
+
+      { (qState !== 1) ? (<></>) : (
+          <div>
+            <p></p>
+            {"Final Score: " + score}
+            <p>Game Ended</p>
+          </div>
+      )}
 
       { eState === 1 ? (
         <p>Already Entered!</p>
@@ -292,7 +481,138 @@ export default function App() {
       ) : (<></>)}
 
       <p></p>
-        </div>) : (
+        </div>
+
+
+            ) : (<div>
+
+                {user != null &&
+                  <p>Welcome, {user.displayName} ({user.email})</p> 
+                } 
+
+                <div>
+                  { cState === -1 ? (
+                    <div>
+
+                  <p>Please select a challenge!</p>
+
+                  <Button variant="contained" color="primary" onClick={() => {handleC1()}}> 
+                    Challenge 1
+                  </Button>
+                
+                  {/* Secondary button*/}
+                  <Button variant="contained" color="secondary" onClick={() => {handleC2()}}>
+                    Challenge 2
+                  </Button> {/* End of secondary button */}
+
+                  <Button variant="contained" color="primary" onClick={() => {handleC3()}}>
+                    Challenge 3
+                  </Button> {/* End of secondary button */}
+
+                  {v4 ? (
+                    <div>
+                      <p></p>
+                      <Button variant="contained" onClick={() => {handleReturn()}}>
+                        Main Page
+                      </Button> {/* End of secondary button */}
+                    </div>
+                  ): <></> }
+                    </div>
+                  ) : (
+
+                    <div>
+                    { c ? (
+                      <div>
+                      <div>
+                        {gShow && (gridItems !== undefined) ?
+                          (<div> 
+                              {"Score: " + score}
+                              <p></p>
+                              <div>
+                              <Grid  container direction="row" justify="center" alignItems="center">
+                                {<NestedGrid/>}   
+                              </Grid>
+                              </div>
+                          </div>) : (<div></div>)
+                        }   
+                      </div>
+                      
+
+                      <p></p>
+
+                      <div>
+                      {/* Secondary button*/}
+                      <Button variant="contained" color="secondary" onClick={() => {handleCQuit()}}>
+                        Quit
+                      </Button> {/* End of secondary button */}
+                      </div>
+
+                      {v4 ? (
+                        <div>
+                          <p></p>
+                          <Button variant="contained" onClick={() => {handleReturn()}}>
+                            Main Page
+                          </Button> {/* End of secondary button */}
+                        </div>
+                      ): <></> }
+
+
+                      { (qState !== 1) && (qState !== -1) ? ( 
+                        <div>
+                        <form onSubmit={formik.handleSubmit} id='wordInput'>
+                        <label htmlFor="Answer"></label>
+                        <input
+                            autoComplete="off"
+                            id="Answer"
+                            name="Answer"
+                            type="Answer"
+                            onChange={formik.handleChange}
+                            value={formik.values.Answer}
+                        />
+                        <button type="submit">Submit</button>
+                        </form>
+                        </div>
+                      ) : (<div></div>)}
+
+                      { (qState !== 1) ? (<></>) : (
+                          <div>
+                            <p></p>
+                            {"Final Score: " + score}
+                            <p>Game Ended</p>
+                          </div>
+                      )}
+
+                      { eState === 1 ? (
+                        <p>Already Entered!</p>
+                      ) : (<></>)}
+
+                      { eState === 2 ? (
+                          <p>Invalid Word!</p>
+                      ) : (<></>)}  
+
+                      { qState === 0 ? (
+                          <div>
+                            <p>Found Words:</p>
+                            <VirtualizedList></VirtualizedList>
+                          </div>   
+                      ) : (<></>)}
+
+                      { qState === 1 ? (
+                        <div>
+                          <p>Missed Words:</p>
+                          <VirtualizedList></VirtualizedList>
+                        </div>
+                      ) : (<></>)}
+
+                      <p></p>
+                        </div>
+                    ) : (<>NO</>)}
+                    </div>
+                        
+                  )}
+                </div>
+
+              </div>))) : (
           <div>
             <LoginButton setUser={(user) => setUser(user)} />
           </div>
