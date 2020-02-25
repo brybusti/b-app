@@ -14,6 +14,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import LoginButton from './LoginButton.js';
 import { FixedSizeList } from 'react-window';
 import {db} from './firebase';
+import firebase from 'firebase';
 
 
 import {
@@ -24,7 +25,7 @@ import {
 } from "react-router-dom";
 
 // Needed global variables
-let gridItems, gItems, dict, usedAnswer, answers, itr, itr2, cnt = 0, eState = 0, gMode = -1, qState = -1, score = 0, cState = -1;
+let gridItems, gItems, lBoard, dict, usedAnswer, answers, itr, itr2, cnt = 0, eState = 0, gMode = -1, qState = -1, score = 0, cState = -1;
 let g2 = new Array(4).fill('c').map(row => Array(4).fill('c'));
 
 // UseStyles to be used
@@ -96,14 +97,6 @@ export default function App() {
   }); // End of Formik
 
 
-
-  // function readFromDB(){
-  //   var grid = db.collection('challenges').doc('C-1').get().then(function(snapshot){
-  //     console.log(snapshot.data().grid);
-  //   })
-  // }
-
-
   function handleQuit() {
     if(isVisible){
       setIsVisible(!isVisible)
@@ -115,10 +108,12 @@ export default function App() {
 
 
   function handleCQuit(){
+    if(gShow){
       setG(!gShow);
       setVis2(!visible2);
       sV4(!v4);
       qState = 1;
+    }
   } // End of handleCQuit (challenge quit button)
 
   function handleStart(){
@@ -249,6 +244,19 @@ export default function App() {
     if(!visible3)
     setV3(!visible3);
   } // End of handleReturn
+
+  function handleLeaderboard(){
+    // db.collection('challenges').doc('C-1').get().then(function(instance){
+      
+    // });
+
+    // firebase.database().ref('challenges/')
+    // console.log(lBoard);
+  } // End of handleLeaderboard
+
+  function handleSignOut(){
+
+  }
 
 
   function renderRow(props) {
@@ -494,7 +502,7 @@ export default function App() {
                   { cState === -1 ? (
                     <div>
 
-                  <p>Please select a challenge!</p>
+                  <p>Double click a challenge!</p>
 
                   <Button variant="contained" color="primary" onClick={() => {handleC1()}}> 
                     Challenge 1
@@ -620,4 +628,4 @@ export default function App() {
       </header>
     </div>
   );
-}
+} // End of App
